@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSkillRequest extends FormRequest
 {
@@ -21,8 +22,13 @@ class UpdateSkillRequest extends FormRequest
      */
     public function rules(): array
     {
+        $skillId = $this->route('skill')->skill_id;
+
         return [
-            //
+            'skill_name' => ['required','string','max:25',
+                Rule::unique('skills', 'skill_name')->ignore($skillId, 'skill_id'),
+            ],
+            'skill_description' => 'nullable|string|max:255',
         ];
     }
 }

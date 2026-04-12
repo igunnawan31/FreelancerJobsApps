@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\UserEnums\UserRole;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -13,7 +14,7 @@ class SkillPolicy
      */
     public function viewAny(User $user): bool
     {
-        //
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -21,31 +22,19 @@ class SkillPolicy
      */
     public function view(User $user, Skill $skill): bool
     {
-        //
+        return $user->role === UserRole::ADMIN;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        //
+    public function create(User $user): bool {
+        return $user->role === UserRole::ADMIN;
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Skill $skill): bool
-    {
-        //
+    public function update(User $user, Skill $skill): bool {
+        return $user->role === UserRole::ADMIN;
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Skill $skill): bool
-    {
-        //
+    public function delete(User $user, Skill $skill): bool {
+        return $user->role === UserRole::ADMIN;
     }
 
     /**
@@ -53,7 +42,7 @@ class SkillPolicy
      */
     public function restore(User $user, Skill $skill): bool
     {
-        //
+        return false;
     }
 
     /**
@@ -61,6 +50,6 @@ class SkillPolicy
      */
     public function forceDelete(User $user, Skill $skill): bool
     {
-        //
+        return $user->role === UserRole::ADMIN;
     }
 }
