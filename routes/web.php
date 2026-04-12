@@ -14,21 +14,29 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Route::get('/', function () {
+//     return auth()->check() 
+//         ? redirect()->route('dashboard') 
+//         : redirect()->route('login');
+// });
+
+// Route::middleware('guest')->group(function () {
+//     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+//     Route::post('/login', [AuthenticatedSessionController::class, 'authenticate']);
+// });
+
+// Route::middleware('auth')->group(function () {
+//     Route::get('/dashboard', function () {
+//         return view('dashboard');
+//     })->name('dashboard');
+
+//     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
+// });
+
 Route::get('/', function () {
-    return auth()->check() 
-        ? redirect()->route('dashboard') 
-        : redirect()->route('login');
+    return view ('dashboard');
 });
 
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticatedSessionController::class, 'authenticate']);
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-
-    Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
+Route::get('/login', function () {
+    return view ('auth.login');
 });
