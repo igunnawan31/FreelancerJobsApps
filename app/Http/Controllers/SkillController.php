@@ -19,6 +19,8 @@ class SkillController extends Controller
             return redirect()->route('login');
         }
 
+        $user = Auth::user();
+
         $skills = Skill::all();
         return response()->json($skills);
     }
