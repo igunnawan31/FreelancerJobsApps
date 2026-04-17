@@ -8,6 +8,8 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Requests\UploadAttachmentRequest;
 use App\Models\Project;
+use App\Models\Skill;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -51,9 +53,6 @@ class ProjectController extends Controller
             $query->where('client_id', $user->user_id);
         }
 
-        // Role-based data log yang ditampilkan
-        if ($user->role)
-
         // Filtering berdasarkan query parameter
         // Filter Search
         if ($request->filled('search')) {
@@ -93,7 +92,42 @@ class ProjectController extends Controller
     {
         $this->authorize('create', Project::class);
 
-        return view('projects.create');
+        $skills = Skill::orderBy('skill_name')->get(['skill_id', 'skill_name']);
+        $clients = User::where('role', UserRole::CLIENT)
+            ->get(['user_id', 'name', 'email']);
+
+        return view('projects.create', compact('skills', 'clients'));
+    }
+
+    public function availableFreelancers(Request $request)
+    {
+        $this->authorize('create', Project::class);
+
+        $skillIds = $request->input('skill_ids', []);
+
+        $query = User::where('role', UserRole::FREELANCER)
+            ->withCount([
+                'projects as active_projects_count' => function ($q) {
+                    $q->whereIn('project_status', [
+                        ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
+                        ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
+                        ProjectStatus::STATUS_RUNNING,
+                        ProjectStatus::STATUS_REVISION,
+                        ProjectStatus::STATUS_COMPLETED,
+                    ]);
+                }
+            ])
+            ->having('active_projects_count', '<', 3);
+
+        if (!empty($skillIds)) {
+            $query->whereHas('skills', function ($q) use ($skillIds) {
+                $q->whereIn('skill_id', $skillIds);
+            });
+        }
+
+        $freelancers = $query->get(['user_id', 'name', 'email']);
+
+        return response()->json($freelancers);
     }
 
     /**
@@ -104,20 +138,39 @@ class ProjectController extends Controller
         $this->authorize('create', Project::class);
         $validated = $request->validated();
 
+        $attachments = $request->file('attachments', []);
+        $skillIds = $validated['skill_ids'] ?? [];
+        unset($validated['attachments'], $validated['skill_ids']);
+
         if (!empty($validated['user_id'])) {
             $validated['project_status'] = ProjectStatus::STATUS_REQUESTED_BY_ADMIN;
-            $action = 'created and requested by admin';
+            $action = 'created_and_requested_by_admin';
         } else {
             $validated['project_status'] = ProjectStatus::STATUS_OPEN;
-            $action = 'created new project by admin';
+            $action = 'created_by_admin';
         }
 
         $project = Project::create($validated);
+        $project->skills()->sync($skillIds);
 
-        $project->projectlogs()->create([
+        $log = $project->projectlogs()->create([
             'actor_id' => auth()->id(),
-            'action' => $action,
+            'action'   => $action,
         ]);
+
+        foreach ($attachments as $file) {
+            $path = $file->store("projects/{$project->project_id}/references", 'local');
+
+            $project->attachments()->create([
+                'project_log_id'   => $log->id,
+                'file_name'        => $file->getClientOriginalName(),
+                'file_path'        => $path,
+                'file_type'        => $file->getMimeType(),
+                'file_size'        => $file->getSize(),
+                'uploaded_by'      => auth()->id(),
+                'uploaded_by_role' => UserRole::ADMIN,
+            ]);
+        }
 
         return redirect()->route('projects.index')
             ->with('success', 'Project created successfully.');
@@ -150,12 +203,32 @@ class ProjectController extends Controller
     {
         $this->authorize('update', $project);
 
-        $project->update($request->validated());
+        $validated   = $request->validated();
+        $attachments = $request->file('attachments', []);
+        $skillIds    = $validated['skill_ids'] ?? [];
+        unset($validated['attachments'], $validated['skill_ids']);
 
-        $project->projectlogs()->create([
+        $project->update($validated);
+        $project->skills()->sync($skillIds);
+
+        $log = $project->projectlogs()->create([
             'actor_id' => auth()->id(),
-            'action' => 'updated',
+            'action'   => 'updated',
         ]);
+
+        foreach ($attachments as $file) {
+            $path = $file->store("projects/{$project->project_id}/updates", 'local');
+
+            $project->attachments()->create([
+                'project_log_id'   => $log->id,
+                'file_name'        => $file->getClientOriginalName(),
+                'file_path'        => $path,
+                'file_type'        => $file->getMimeType(),
+                'file_size'        => $file->getSize(),
+                'uploaded_by'      => auth()->id(),
+                'uploaded_by_role' => UserRole::ADMIN,
+            ]);
+        }
 
         return redirect()->route('projects.show', $project->project_id)
             ->with('success', 'Project updated successfully');
@@ -168,7 +241,6 @@ class ProjectController extends Controller
     {
         $this->authorize('delete', $project);
 
-        // 📝 LOG before delete (optional)
         $project->projectlogs()->create([
             'actor_id' => auth()->id(),
             'action' => 'deleted',
@@ -183,18 +255,15 @@ class ProjectController extends Controller
     public function request(Project $project)
     {
         $this->authorize('request', $project);
-        $user = auth()->user();
 
-        if ($user->role === UserRole::FREELANCER) {
-            $project->update([
-                'project_status' => ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
-                'user_id' => $user->user_id
-            ]);
-            $action = 'requested_by_freelancer';
-        } 
+        $project->update([
+            'project_status' => ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
+            'user_id' => auth()->id(),
+        ]);
+
         $project->projectlogs()->create([
-            'actor_id' => $user->user_id,
-            'action' => $action,
+            'actor_id' => auth()->id(),
+            'action' => 'requested_by_freelancer',
         ]);
 
         return back()->with('success', 'Project requested successfully');
@@ -202,23 +271,26 @@ class ProjectController extends Controller
 
     public function assign(Request $request, Project $project)
     {
-        $this->authorize('assign', $project);
-        $user = auth()->user();
-
         $request->validate([
             'user_id' => 'required|exists:users,user_id',
         ]);
 
-        if ($user->role === UserRole::ADMIN) {
-            $project->update([
-                'project_status' => ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
-                'user_id' => $request->user_id,
+        $freelancer = User::findOrFail($request->user_id);
+
+        if ($freelancer->hasActiveProject()) {
+            return back()->withErrors([
+                'user_id' => 'This freelancer already has 3 active projects.'
             ]);
-            $action = 'requested_by_admin';
         }
+
+        $project->update([
+            'project_status' => ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
+            'user_id' => $request->user_id,
+        ]);
+
         $project->projectlogs()->create([
-            'actor_id' => $user->user_id,
-            'action' => $action,
+            'actor_id' => auth()->id(),
+            'action' => 'requested_by_admin',
         ]);
 
         return back()->with('success', 'Project assigned successfully');
@@ -265,11 +337,6 @@ class ProjectController extends Controller
     public function submit(UploadAttachmentRequest $request, Project $project)
     {
         $this->authorize('submit', $project);
-
-        $request->validate([
-            'attachments'   => 'required|array|min:1',
-            'attachments.*' => 'file|max:10240',
-        ]);
 
         $project->update([
             'project_status' => ProjectStatus::STATUS_COMPLETED,
@@ -342,12 +409,6 @@ class ProjectController extends Controller
     {
         $this->authorize('resubmit', $project);
 
-        $request->validate([
-            'attachments'   => 'required|array|min:1',
-            'attachments.*' => 'file|max:10240',
-            'comment'       => 'nullable|string|max:255',
-        ]);
-
         $revisionNumber = $project->projectlogs()
             ->where('action', 'revision_requested')
             ->count();
@@ -377,5 +438,23 @@ class ProjectController extends Controller
         }
 
         return back()->with('success', 'Revision submitted successfully');
+    }
+
+    public function logs(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $project->load(['projectlogs.actor']);
+
+        return view('projects.logs', compact('project'));
+    }
+
+    public function attachments(Project $project)
+    {
+        $this->authorize('view', $project);
+
+        $project->load(['attachments.uploader']);
+
+        return view('projects.attachments', compact('project'));
     }
 }
