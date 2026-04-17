@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -28,8 +29,6 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/project', function() {
-        return view('project');
-    });
+    Route::get('/project', [ProjectController::class, 'index'])->name('project');
     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
 });

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
+use App\Enums\UserEnums\UserRole;
+use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
@@ -13,7 +15,21 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        //
+        $user = auth()->user();
+
+        if ($user->role === UserRole::ADMIN) {
+            return view('projects.admin');
+        }
+
+        if ($user->role === UserRole::FREELANCER) {
+            return view('projects.freelancer');
+        }
+
+        if ($user->role === UserRole::CLIENT) {
+            return view('projects.client');
+        }
+
+        abort(403);
     }
 
     /**
