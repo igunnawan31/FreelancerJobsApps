@@ -29,6 +29,31 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/project', [ProjectController::class, 'index'])->name('project');
+
+    Route::resource('projects', ProjectController::class);
+
+    Route::patch('/projects/{project}/request', [ProjectController::class, 'request'])->name('projects.request');
+    Route::patch('/projects/{project}/assign', [ProjectController::class, 'assign'])->name('projects.assign');
+    Route::patch('/projects/{project}/accept', [ProjectController::class, 'accept'])->name('projects.accept');
+    Route::patch('/projects/{project}/reject', [ProjectController::class, 'reject'])->name('projects.reject');
+    Route::post('/projects/{project}/submit', [ProjectController::class, 'submit'])->name('projects.submit');
+    Route::patch('/projects/{project}/revise', [ProjectController::class, 'revise'])->name('projects.revise');
+    Route::post('/projects/{project}/resubmit', [ProjectController::class, 'resubmit'])->name('projects.resubmit');
+    Route::patch('/projects/{project}/approve', [ProjectController::class, 'approve'])->name('projects.approve');
+
+    Route::get('/projects/{project}/logs', function ($projectId) {
+        return \App\Models\Project::with('projectlogs.actor')->findOrFail($projectId);
+    })->name('projects.logs');
+
+    Route::get('/projects/{project}/attachments', function ($projectId) {
+        return \App\Models\Project::with('attachments')->findOrFail($projectId);
+    })->name('projects.attachments');
+
+    Route::delete('/attachments/{attachment}', function ($attachmentId) {
+        $attachment = \App\Models\ProjectAttachment::findOrFail($attachmentId);
+        $attachment->delete();
+        return back()->with('success', 'Attachment deleted');
+    })->name('attachments.destroy');
+
     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
 });

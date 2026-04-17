@@ -68,6 +68,11 @@ class User extends Authenticatable
         return $this->hasMany(Project::class, 'user_id', 'user_id');
     }
 
+    public function clients() {
+        // user --> client projects (One to Many)
+        return $this->hasMany(Project::class, 'client_id', 'user_id');
+    }
+
     public function totalProjects() {
         // counting all the projects from user
         return $this->projects()->count();
