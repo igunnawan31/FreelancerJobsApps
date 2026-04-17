@@ -6,14 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UploadAttachmentRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        return auth()->check();
+    }
+    
     public function rules(): array
     {
         return [
             'attachments'   => 'required|array|min:1|max:5',
             'attachments.*' => [
                 'file',
-                'max:10240',
-                'mimes:pdf,doc,docx,xls,xlsx,png,jpg,jpeg,zip',
+                'max:1024000',
+                'mimes:pdf,png,jpg,jpeg,zip,clip,psd',
             ],
             'comment' => 'nullable|string|max:255',
         ];
@@ -22,8 +27,8 @@ class UploadAttachmentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'attachments.*.mimes' => 'Only PDF, Word, Excel, images, and ZIP files are allowed.',
-            'attachments.*.max'   => 'Each file must not exceed 10MB.',
+            'attachments.*.mimes' => 'Only PDF, images, and ZIP files are allowed.',
+            'attachments.*.max'   => 'Each file must not exceed 1GB.',
             'attachments.max'     => 'You can upload a maximum of 5 files at once.',
         ];
     }

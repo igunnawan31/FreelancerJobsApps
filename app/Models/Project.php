@@ -26,6 +26,11 @@ class Project extends Model {
         'project_status' => ProjectStatus::class,
     ];
 
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'project_id', 'project_id');
+    }
+
     public function user() {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }

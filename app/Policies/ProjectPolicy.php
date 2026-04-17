@@ -6,7 +6,6 @@ use App\Enums\ProjectEnums\ProjectStatus;
 use App\Enums\UserEnums\UserRole;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class ProjectPolicy
 {
@@ -73,14 +72,22 @@ class ProjectPolicy
 
     public function request(User $user, Project $project): bool 
     {
-        return $user->role === UserRole::FREELANCER 
-            && $project->project_status === ProjectStatus::STATUS_OPEN;
+        return $user->role === UserRole::FREELANCER
+            && $project->project_status === ProjectStatus::STATUS_OPEN
+            && !$user->hasActiveProject();
     }
 
     public function assign(User $user, Project $project): bool
     {
-        return $user->role === UserRole::ADMIN 
-            && $project->project_status === ProjectStatus::STATUS_OPEN;
+        if ($user->role !== UserRole::ADMIN) {
+            return false;
+        }
+
+        if ($project->project_status !== ProjectStatus::STATUS_OPEN) {
+            return false;
+        }
+
+        return true;
     }
 
     public function accept(User $user, Project $project): bool
@@ -156,16 +163,16 @@ class ProjectPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Project $project): bool
-    {
-        //
-    }
+    // public function restore(User $user, Project $project): bool
+    // {
+    //     //
+    // }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Project $project): bool
-    {
-        //
-    }
+    // /**
+    //  * Determine whether the user can permanently delete the model.
+    //  */
+    // public function forceDelete(User $user, Project $project): bool
+    // {
+    //     //
+    // }
 }

@@ -13,10 +13,11 @@ use Laravel\Sanctum\HasApiTokens;
 use App\Models\Skill;
 use App\Models\Project;
 use App\Models\Rating;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $primaryKey = 'user_id';
     public $incrementing = true;
@@ -34,7 +35,7 @@ class User extends Authenticatable
         'role',
         'phone_number',
         'profile_picture', // Picture User
-        'portfolio', // Portfolio User (Can be Link or File)
+        'portfolio', // Link
     ];
 
     /**
@@ -78,16 +79,26 @@ class User extends Authenticatable
         return $this->projects()->count();
     }
 
-    public function canTakeProject() {
-        // checking if user has less than 3 running projects
+    public function hasActiveProject(): bool
+    {
         return $this->projects()
-            ->where('project_status', ProjectStatus::STATUS_RUNNING)
-            ->count() < 3;
+            ->whereIn('project_status', [
+                ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
+                ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
+                ProjectStatus::STATUS_RUNNING,
+                ProjectStatus::STATUS_REVISION,
+                ProjectStatus::STATUS_COMPLETED,
+            ])
+            ->count() >= 3;
     }
 
     public function ratings() {
         // user --> ratings (One to Many)
         return $this->hasMany(Rating::class, 'user_id', 'user_id');
+    }
+
+    public function ratingsGiven() {
+        return $this->hasMany(Rating::class, 'penilai_id', 'user_id');
     }
 
     public function averageRating() {
