@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdatePasswordRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -56,7 +57,9 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        return view('users.create');
+        $skills = Skill::orderBy('skill_name')->get(['skill_id', 'skill_name']);
+
+        return view('users.create', compact('skills'));
     }
 
     public function store(StoreUserRequest $request)
@@ -87,7 +90,11 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        $this->authorize('update', User::class);
 
+        $skills = Skill::orderBy('skill_name')->get(['skill_id', 'skill_name']);
+
+        return view('users.update', compact('skills'));
     }
 
     public function update(UpdateUserRequest $request, User $user)

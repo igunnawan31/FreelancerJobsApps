@@ -5,7 +5,6 @@ namespace App\Policies;
 use App\Enums\UserEnums\UserRole;
 use App\Models\Skill;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class SkillPolicy
 {
@@ -14,7 +13,7 @@ class SkillPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->role === UserRole::ADMIN;
+        return true;
     }
 
     /**
@@ -22,7 +21,7 @@ class SkillPolicy
      */
     public function view(User $user, Skill $skill): bool
     {
-        return $user->role === UserRole::ADMIN;
+        return true;
     }
 
     public function create(User $user): bool {

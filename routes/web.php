@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthenticatedSessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectAttachmentController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SkillController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -53,6 +54,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/freelancers/available', [ProjectController::class, 'availableFreelancers'])
         ->name('freelancers.available');
+
+    Route::resource('skills', SkillController::class);
+
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
 });

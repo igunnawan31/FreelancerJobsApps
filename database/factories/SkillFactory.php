@@ -18,6 +18,7 @@ class SkillFactory extends Factory
     {
         return [
             'skill_name' => $this->faker->unique()->word(),
+            'skill_description' => $this->faker->word(),
         ];
     }
 }

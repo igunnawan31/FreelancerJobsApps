@@ -193,7 +193,13 @@ class ProjectController extends Controller
      */
     public function edit(Project $project)
     {
-        //
+        $this->authorize('update', Project::class);
+
+        $skills = Skill::orderBy('skill_name')->get(['skill_id', 'skill_name']);
+        $clients = User::where('role', UserRole::CLIENT)
+            ->get(['user_id', 'name', 'email']);
+
+        return view('projects.update', compact('skills', 'clients'));
     }
 
     /**
