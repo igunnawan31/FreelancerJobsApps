@@ -4,7 +4,7 @@
         <ul class="space-y-4">
             @if(auth()->user()->role === \App\Enums\UserEnums\UserRole::ADMIN)
                 <li><a href="/dashboard" class="hover:text-gray-300">Dashboard</a></li>
-                <li><a href="/project" class="hover:text-gray-300">Projects</a></li>
+                <li><a href="/projects" class="hover:text-gray-300">Projects</a></li>
                 <li><a href="#" class="hover:text-gray-300">Freelancers</a></li>
                 <li><a href="#" class="hover:text-gray-300">Payments</a></li>
                 <li><a href="#" class="hover:text-gray-300">Profile</a></li>
@@ -12,7 +12,7 @@
 
             @if(auth()->user()->role === \App\Enums\UserEnums\UserRole::FREELANCER)
                 <li><a href="/dashboard" class="hover:text-gray-300">Dashboard</a></li>
-                <li><a href="/project" class="hover:text-gray-300">Projects</a></li>
+                <li><a href="/projects" class="hover:text-gray-300">Projects</a></li>
                 <li><a href="#" class="hover:text-gray-300">Payments</a></li>
                 <li><a href="#" class="hover:text-gray-300">Profile</a></li>
             @endif
