@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProjectEnums\ProjectStatus;
 use App\Enums\UserEnums\UserRole;
+use App\Http\Requests\StorePaymentRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Requests\UploadAttachmentRequest;
@@ -168,7 +169,6 @@ class ProjectController extends Controller
                 'file_type'        => $file->getMimeType(),
                 'file_size'        => $file->getSize(),
                 'uploaded_by'      => auth()->id(),
-                'uploaded_by_role' => UserRole::ADMIN,
             ]);
         }
 
@@ -369,20 +369,41 @@ class ProjectController extends Controller
         return back()->with('success', 'Work submitted successfully');
     }
 
-    public function approve(Project $project)
+    public function approve(StorePaymentRequest $request, Project $project)
     {
         $this->authorize('approve', $project);
+
+        $validated = $request->validated();
+
+        $payment_attachments = $request->file('payment_attachments', []);
+
+        $log = $project->projectlogs()->create([
+            'actor_id' => auth()->id(),
+            'action'   => 'payment and project done',
+        ]);
+
+        foreach ($payment_attachments as $file) {
+            $path = $file->store("projects/{$project->project_id}/payments", 'local');
+
+            $project->payments()->create([
+                'project_id'         => $project->project_id,
+                'project_log_id'     => $log->id,
+                'payment_method'     => $request->payment_method,
+                'payment_attachments' => $path,
+                'file_name'          => $file->getClientOriginalName(),
+                'file_path'          => $path,
+                'file_type'          => $file->getMimeType(),
+                'file_size'          => $file->getSize(),
+                'uploaded_by'        => auth()->id(),
+                'note'               => $request->note,
+            ]);
+        }
 
         $project->update([
             'project_status' => ProjectStatus::STATUS_DONE,
         ]);
 
-        $project->projectlogs()->create([
-            'actor_id' => auth()->id(),
-            'action' => 'approved',
-        ]);
-
-        return back()->with('success', 'Project approved');
+        return back()->with('success', 'Project approved and payment recorded');
     }
 
     public function revise(Request $request, Project $project)
