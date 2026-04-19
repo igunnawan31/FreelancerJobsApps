@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProjectEnums\ProjectStatus;
+use App\Enums\RatingEnums\RatingType;
 use App\Enums\UserEnums\UserRole;
 use App\Http\Requests\StorePaymentRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Requests\UploadAttachmentRequest;
 use App\Models\Project;
+use App\Models\Rating;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
@@ -465,6 +468,42 @@ class ProjectController extends Controller
         }
 
         return back()->with('success', 'Revision submitted successfully');
+    }
+
+    public function ratings(Request $request, Project $project)
+    {
+        $this->authorize('ratings', $project);
+
+        $types = collect(RatingType::cases())->pluck('value');
+
+        foreach ($types as $type) {
+            if (!$request->has("ratings.$type")) {
+                throw ValidationException::withMessages([
+                    "ratings.$type" => "Rating for {$type} is required"
+                ]);
+            }
+        }
+
+        $request->validate([
+            'ratings' => 'required|array',
+            'ratings.*' => 'required|integer|min:1|max:5',
+        ]);
+
+        foreach ($request->ratings as $type => $value) {
+            Rating::updateOrCreate(
+                [
+                    'project_id'  => $project->project_id,
+                    'user_id'     => $project->user_id,
+                    'rating_type' => $type,
+                ],
+                [
+                    'rating_value' => $value,
+                    'penilai_id'   => auth()->id(),
+                ]
+            );
+        }
+
+        return back()->with('success', 'Ratings submitted successfully');
     }
 
     public function logs(Project $project)

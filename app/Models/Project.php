@@ -56,6 +56,13 @@ class Project extends Model {
     public function payments() {
         return $this->hasMany(Payment::class, 'project_id', 'project_id');
     }
+
+
+    // Logic
+    public function averageRating()
+    {
+        return $this->ratings()->avg('rating_value');
+    }
 }
 
 ?>

@@ -100,9 +100,13 @@ class User extends Authenticatable
         return $this->hasMany(Rating::class, 'penilai_id', 'user_id');
     }
 
-    public function averageRating() {
-        // calculate average rating from user
-        return $this->ratings()->avg('rating_value');
+    public function averageRating()
+    {
+        return $this->ratings()
+            ->selectRaw('project_id, AVG(rating_value) as avg_per_project')
+            ->groupBy('project_id')
+            ->get()
+            ->avg('avg_per_project');
     }
 
     public function totalRatings() {

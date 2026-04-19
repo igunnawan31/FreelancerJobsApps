@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\RatingEnums\RatingType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
@@ -14,7 +15,7 @@ class Rating extends Model
     protected $primaryKey = 'rating_id';
 
     protected $fillable = [
-        'rating_name',
+        'rating_type',
         'rating_value',
         'project_id',
         'user_id',
@@ -22,6 +23,7 @@ class Rating extends Model
     ];
 
     protected $casts = [
+        'rating_type' => RatingType::class,
         'rating_value' => 'integer',
     ];
 
