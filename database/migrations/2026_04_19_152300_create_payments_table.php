@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PaymentEnums\PaymentMethod;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -23,7 +24,10 @@ return new class extends Migration
                 ->constrained('project_logs', 'id')
                 ->nullOnDelete();
 
-            $table->string('payment_method');
+            $table->string('payment_method')
+                ->default(PaymentMethod::BANK_TRANSFER->value)
+                ->index();
+
             $table->string('file_name');
             $table->string('file_path');
             $table->string('file_type')->nullable();

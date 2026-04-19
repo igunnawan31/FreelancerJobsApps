@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentEnums\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,6 +25,7 @@ class Payment extends Model
     ];
 
     protected $casts = [
+        'payment_method' => PaymentMethod::class,
         'file_size' => 'integer',
     ];
 

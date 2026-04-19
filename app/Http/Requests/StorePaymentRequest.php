@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\PaymentEnums\PaymentMethod;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class StorePaymentRequest extends FormRequest
 {
@@ -22,7 +24,7 @@ class StorePaymentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method'     => 'required|string|max:100',
+            'payment_method' => ['required', new Enum(PaymentMethod::class)],
             'payment_attachments' => 'required|array|min:1|max:5',
             'payment_attachments.*' => [
                 'file',

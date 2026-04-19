@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\PaymentEnums\PaymentMethod;
 use App\Enums\ProjectEnums\ProjectStatus;
 use App\Enums\UserEnums\UserRole;
 use App\Models\Project;
@@ -143,7 +144,7 @@ class ProjectFlowTest extends TestCase
         // Admin approve with payment
         $this->actingAs($this->admin)
             ->post(route('projects.approve', $project->project_id), [
-                'payment_method'      => 'transfer',
+                'payment_method'      => PaymentMethod::BANK_TRANSFER->value,
                 'payment_attachments' => [
                     UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf'),
                 ],
@@ -167,7 +168,7 @@ class ProjectFlowTest extends TestCase
 
         $this->actingAs($this->freelancer)
             ->post(route('projects.approve', $project->project_id), [
-                'payment_method' => 'transfer',
+                'payment_method' => PaymentMethod::BANK_TRANSFER->value,
                 'payment_attachments' => [
                     \Illuminate\Http\UploadedFile::fake()->create('bukti.jpg', 100)
                 ],
