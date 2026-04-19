@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/approve',   [ProjectController::class, 'approve'])->name('projects.approve');
     Route::get('/projects/{project}/logs',       [ProjectController::class, 'logs'])->name('projects.logs');
     Route::get('/projects/{project}/attachments',[ProjectController::class, 'attachments'])->name('projects.attachments');
+    Route::post('/projects/{project}/ratings', [ProjectController::class, 'ratings'])->name('projects.ratings');
 
     Route::resource('users', UserController::class);
     Route::resource('skills', SkillController::class);
