@@ -33,7 +33,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::resource('projects', ProjectController::class);
+    Route::get('/freelancers/available', [ProjectController::class, 'availableFreelancers'])
+        ->name('freelancers.available');
+
     Route::post('/projects/{project}/request',   [ProjectController::class, 'request'])->name('projects.request');
     Route::post('/projects/{project}/assign',    [ProjectController::class, 'assign'])->name('projects.assign');
     Route::post('/projects/{project}/accept',    [ProjectController::class, 'accept'])->name('projects.accept');
@@ -44,7 +46,13 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/approve',   [ProjectController::class, 'approve'])->name('projects.approve');
     Route::get('/projects/{project}/logs',       [ProjectController::class, 'logs'])->name('projects.logs');
     Route::get('/projects/{project}/attachments',[ProjectController::class, 'attachments'])->name('projects.attachments');
+    Route::post('/projects/{project}/ratings', [ProjectController::class, 'ratings'])->name('projects.ratings');
 
+    Route::resource('users', UserController::class);
+    Route::resource('skills', SkillController::class);
+    Route::resource('projects', ProjectController::class);
+
+<<<<<<< HEAD
     Route::post('/projects/{project}/request', [ProjectController::class, 'request'])->name('projects.request');
     Route::post('/projects/{project}/assign', [ProjectController::class, 'assign'])->name('projects.assign');
     Route::post('/projects/{project}/accept', [ProjectController::class, 'accept'])->name('projects.accept');
@@ -55,13 +63,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/projects/{project}/approve', [ProjectController::class, 'approve'])->name('projects.approve');
 
     Route::resource('users', UserController::class);
+=======
+    Route::delete('/attachments/{attachment}', [ProjectAttachmentController::class, 'destroy'])
+        ->name('attachments.destroy');
+>>>>>>> 552ac011def77996ccb09a662477397f4bcf62ff
     Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])
         ->name('users.password.update');
-
-    Route::get('/freelancers/available', [ProjectController::class, 'availableFreelancers'])
-        ->name('freelancers.available');
-
-    Route::resource('skills', SkillController::class);
 
 
     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');

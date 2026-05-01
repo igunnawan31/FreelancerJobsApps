@@ -18,6 +18,7 @@ class Project extends Model {
         'project_description',
         'project_status',
         'project_deadline',
+        'project_price',
         'user_id',
         'client_id',
     ];
@@ -50,6 +51,17 @@ class Project extends Model {
     public function attachments()
     {
         return $this->hasMany(ProjectAttachment::class, 'project_id', 'project_id');
+    }
+
+    public function payments() {
+        return $this->hasMany(Payment::class, 'project_id', 'project_id');
+    }
+
+
+    // Logic
+    public function averageRating()
+    {
+        return $this->ratings()->avg('rating_value');
     }
 }
 

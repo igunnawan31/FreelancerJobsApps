@@ -25,6 +25,7 @@ class StoreProjectRequest extends FormRequest
             'project_name'        => 'required|string|max:255|unique:projects,project_name',
             'project_description' => 'required|string|max:255',
             'project_deadline'    => 'required|date',
+            'project_price'       => 'required|integer|min:1',
             'user_id'             => 'nullable|exists:users,user_id',
             'client_id'           => 'nullable|exists:users,user_id',
 

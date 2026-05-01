@@ -25,6 +25,7 @@ class ProjectFactory extends Factory
             'project_description' => $this->faker->paragraph(),
             'project_status'      => ProjectStatus::STATUS_OPEN,
             'project_deadline'    => now()->addDays(7),
+            'project_price'       => 1000,
             'user_id'            => null,
             'client_id'          => null,
         ];

@@ -3,14 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ProjectEnums\ProjectStatus;
+use App\Enums\RatingEnums\RatingType;
 use App\Enums\UserEnums\UserRole;
+use App\Http\Requests\StorePaymentRequest;
 use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Requests\UploadAttachmentRequest;
 use App\Models\Project;
+use App\Models\Rating;
 use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProjectController extends Controller
 {
@@ -168,7 +172,6 @@ class ProjectController extends Controller
                 'file_type'        => $file->getMimeType(),
                 'file_size'        => $file->getSize(),
                 'uploaded_by'      => auth()->id(),
-                'uploaded_by_role' => UserRole::ADMIN,
             ]);
         }
 
@@ -369,20 +372,41 @@ class ProjectController extends Controller
         return back()->with('success', 'Work submitted successfully');
     }
 
-    public function approve(Project $project)
+    public function approve(StorePaymentRequest $request, Project $project)
     {
         $this->authorize('approve', $project);
+
+        $validated = $request->validated();
+
+        $payment_attachments = $request->file('payment_attachments', []);
+
+        $log = $project->projectlogs()->create([
+            'actor_id' => auth()->id(),
+            'action'   => 'payment and project done',
+        ]);
+
+        foreach ($payment_attachments as $file) {
+            $path = $file->store("projects/{$project->project_id}/payments", 'local');
+
+            $project->payments()->create([
+                'project_id'         => $project->project_id,
+                'project_log_id'     => $log->id,
+                'payment_method'     => $request->payment_method,
+                'payment_attachments' => $path,
+                'file_name'          => $file->getClientOriginalName(),
+                'file_path'          => $path,
+                'file_type'          => $file->getMimeType(),
+                'file_size'          => $file->getSize(),
+                'uploaded_by'        => auth()->id(),
+                'note'               => $request->note,
+            ]);
+        }
 
         $project->update([
             'project_status' => ProjectStatus::STATUS_DONE,
         ]);
 
-        $project->projectlogs()->create([
-            'actor_id' => auth()->id(),
-            'action' => 'approved',
-        ]);
-
-        return back()->with('success', 'Project approved');
+        return back()->with('success', 'Project approved and payment recorded');
     }
 
     public function revise(Request $request, Project $project)
@@ -444,6 +468,42 @@ class ProjectController extends Controller
         }
 
         return back()->with('success', 'Revision submitted successfully');
+    }
+
+    public function ratings(Request $request, Project $project)
+    {
+        $this->authorize('ratings', $project);
+
+        $types = collect(RatingType::cases())->pluck('value');
+
+        foreach ($types as $type) {
+            if (!$request->has("ratings.$type")) {
+                throw ValidationException::withMessages([
+                    "ratings.$type" => "Rating for {$type} is required"
+                ]);
+            }
+        }
+
+        $request->validate([
+            'ratings' => 'required|array',
+            'ratings.*' => 'required|integer|min:1|max:5',
+        ]);
+
+        foreach ($request->ratings as $type => $value) {
+            Rating::updateOrCreate(
+                [
+                    'project_id'  => $project->project_id,
+                    'user_id'     => $project->user_id,
+                    'rating_type' => $type,
+                ],
+                [
+                    'rating_value' => $value,
+                    'penilai_id'   => auth()->id(),
+                ]
+            );
+        }
+
+        return back()->with('success', 'Ratings submitted successfully');
     }
 
     public function logs(Project $project)

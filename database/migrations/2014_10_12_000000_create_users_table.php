@@ -28,7 +28,7 @@ return new class extends Migration
                 ->nullable();
             $table->text('profile_picture')
                 ->nullable();
-            $table->json('portfolio')
+            $table->string('portfolio')
                 ->nullable();
 
             $table->rememberToken();

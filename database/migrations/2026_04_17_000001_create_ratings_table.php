@@ -13,19 +13,24 @@ return new class extends Migration
     {
         Schema::create('ratings', function (Blueprint $table) {
             $table->id('rating_id');
-            $table->string('rating_name');
+            $table->string('rating_type')
+                ->index();
+
             $table->unsignedTinyInteger('rating_value');
             $table->foreignId('project_id')
                 ->constrained('projects', 'project_id')
                 ->cascadeOnDelete();
+
             $table->foreignId('user_id')
                 ->constrained('users', 'user_id')
                 ->cascadeOnDelete();
+
             $table->foreignId('penilai_id')
                 ->constrained('users', 'user_id')
                 ->cascadeOnDelete();
+
             $table->timestamps();
-            $table->softDeletes();
+            $table->unique(['project_id', 'user_id', 'rating_type', 'deleted_at']);
         });
     }
 

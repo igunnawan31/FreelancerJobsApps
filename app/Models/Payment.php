@@ -2,25 +2,30 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentEnums\PaymentMethod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class ProjectAttachment extends Model
+class Payment extends Model
 {
-    use HasFactory;
-    protected $primaryKey = 'project_attachment_id';
+    use HasFactory, SoftDeletes;
+    protected $primaryKey = 'payment_id';
 
     protected $fillable = [
         'project_id',
         'project_log_id',
+        'payment_method',
         'file_name',
         'file_path',
         'file_type',
         'file_size',
         'uploaded_by',
+        'note'
     ];
 
     protected $casts = [
+        'payment_method' => PaymentMethod::class,
         'file_size' => 'integer',
     ];
 

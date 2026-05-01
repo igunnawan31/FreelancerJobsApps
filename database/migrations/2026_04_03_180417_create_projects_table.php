@@ -22,6 +22,7 @@ return new class extends Migration
                 ->index();
             
             $table->dateTime('project_deadline');
+            $table->unsignedBigInteger('project_price');
             
             $table->foreignId('user_id')
                 ->nullable()

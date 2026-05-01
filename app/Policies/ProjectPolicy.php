@@ -144,6 +144,12 @@ class ProjectPolicy
             && $project->user_id === $user->user_id;
     }
 
+    public function ratings(User $user, Project $project): bool
+    {
+        return $user->role === UserRole::ADMIN
+            && $project->project_status === ProjectStatus::STATUS_DONE;
+    }
+
     /**
      * Determine whether the user can update the model.
      */
