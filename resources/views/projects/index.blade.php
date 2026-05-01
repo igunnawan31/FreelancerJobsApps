@@ -2,7 +2,7 @@
 
 @section('content')
 
-<div class="p-8 space-y-6">
+<div class="p-8 space-y-6 ">
 
     {{-- HEADER --}}
     <div class="flex justify-between items-center">

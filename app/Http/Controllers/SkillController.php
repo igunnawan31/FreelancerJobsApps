@@ -6,21 +6,29 @@ use App\Http\Requests\StoreSkillRequest;
 use App\Http\Requests\UpdateSkillRequest;
 use App\Models\Skill;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class SkillController extends Controller
 {
-    public function __construct() {
-        $this->authorizeResource(Skill::class, 'skill');
-    }
-
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $skills = Skill::latest()->paginate(10);
-        return response()->json($skills);
+        $this->authorize('viewAny', Skill::class);
+
+        $query = Skill::query();
+
+        if ($request->filled('search')) {
+            $query->where('skill_name', 'like', '%' . $request->search . '%');
+        }
+
+        $sortBy = $request->get('sort_by', 'skill_name');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        $query->orderBy($sortBy, $sortOrder);
+        $skills = $query->paginate(10)->appends($request->query());
+        
+        return view('skills.index', compact('skills'));
     }
 
     /**
@@ -28,7 +36,9 @@ class SkillController extends Controller
      */
     public function create()
     {
-        //
+        $this->authorize('create', Skill::class);
+
+        return view('skills.create');
     }
 
     /**
@@ -36,12 +46,12 @@ class SkillController extends Controller
      */
     public function store(StoreSkillRequest $request)
     {
+        $this->authorize('create', Skill::class);
+
         $skill = Skill::create($request->validated());
 
-        return response()->json([
-            'message' => 'Skill created successfully',
-            'skill' => $skill
-        ], 201);
+        return redirect()->route('skills.index')
+            ->with('success', 'Skill created successfully');
     }
 
     /**
@@ -49,7 +59,11 @@ class SkillController extends Controller
      */
     public function show(Skill $skill)
     {
-        return response()->json($skill);   
+        $this->authorize('view', $skill);
+
+        $skill->load(['users', 'projects']);
+
+        return view('skills.show', compact('skill'));   
     }
 
     /**
@@ -57,7 +71,9 @@ class SkillController extends Controller
      */
     public function edit(Skill $skill)
     {
-        //
+        $this->authorize('update', $skill);
+
+        return view('skills.update', compact('skill'));
     }
 
     /**
@@ -65,12 +81,12 @@ class SkillController extends Controller
      */
     public function update(UpdateSkillRequest $request, Skill $skill)
     {
+        $this->authorize('update', $skill);
+
         $skill->update($request->validated());
 
-        return response()->json([
-            'message' => 'Skill updated successfully',
-            'skill' => $skill
-        ]);
+        return redirect()->route('skills.index')
+            ->with('success', 'Skill updated successfully');
     }
 
     /**
@@ -78,18 +94,11 @@ class SkillController extends Controller
      */
     public function destroy(Skill $skill)
     {
-        $skill = Skill::find($skill->skill_id);
-
-        if (!$skill) {
-            return response()->json([
-                'message' => 'Skill not found'
-            ], 404);
-        }
+        $this->authorize('delete', $skill);
 
         $skill->delete();
 
-        return response()->json([
-            'message' => 'Skill deleted successfully'  
-        ], 200);
+        return redirect()->route('skills.index')
+            ->with('success', 'Skill deleted successfully');
     }
 }

@@ -10,7 +10,7 @@
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
     </head>
-    <body class="bg-gray-100 dark:bg-gray-900">
+    <body class="bg-gradient-to-br from-purple-200 via-blue-200 to-yellow-100 dark:bg-gray-900">
         @auth
             <div class="flex">
                 @include('components.sidebar')

@@ -183,4 +183,86 @@ class ProjectFlowTest extends TestCase
             ])
             ->assertSessionHasErrors('attachments.0');
     }
+
+    public function test_admin_can_create_project_with_skills_and_attachments()
+    {
+        Storage::fake('local');
+
+        $skills = \App\Models\Skill::factory()->count(2)->create();
+
+        $response = $this->actingAs($this->admin)
+            ->post(route('projects.store'), [
+                'project_name'        => 'Project With Skills',
+                'project_description' => 'Description',
+                'project_deadline'    => '2025-12-01 00:00:00',
+                'client_id'           => $this->client->user_id,
+                'skill_ids'           => $skills->pluck('skill_id')->toArray(),
+                'attachments' => [
+                    UploadedFile::fake()->create('file1.pdf', 100, 'application/pdf'),
+                    UploadedFile::fake()->create('file2.jpg', 100, 'image/jpeg'),
+                ],
+            ]);
+
+        $response->assertRedirect(route('projects.index'));
+
+        $project = Project::where('project_name', 'Project With Skills')->first();
+
+        foreach ($skills as $skill) {
+            $this->assertDatabaseHas('project_skills', [
+                'project_id' => $project->project_id,
+                'skill_id'   => $skill->skill_id,
+            ]);
+        }
+
+        $this->assertDatabaseHas('project_attachments', [
+            'project_id' => $project->project_id,
+        ]);
+    }
+
+    public function test_admin_can_update_project_skills_and_attachments()
+    {
+        Storage::fake('local');
+
+        $project = Project::factory()->create([
+            'client_id' => $this->client->user_id,
+        ]);
+
+        $skills = \App\Models\Skill::factory()->count(2)->create();
+
+        $this->actingAs($this->admin)
+            ->patch(route('projects.update', $project->project_id), [
+                'project_name'        => 'Updated Project',
+                'project_description' => 'Updated Desc',
+                'project_deadline'    => '2025-12-10 00:00:00',
+                'client_id'           => $this->client->user_id,
+                'skill_ids'           => $skills->pluck('skill_id')->toArray(),
+                'attachments' => [
+                    UploadedFile::fake()->create('update.pdf', 100),
+                ],
+            ]);
+
+        foreach ($skills as $skill) {
+            $this->assertDatabaseHas('project_skills', [
+                'project_id' => $project->project_id,
+                'skill_id'   => $skill->skill_id,
+            ]);
+        }
+
+        $this->assertDatabaseHas('project_attachments', [
+            'project_id' => $project->project_id,
+        ]);
+    }
+
+    public function test_invalid_skill_ids_rejected()
+    {
+        $this->actingAs($this->admin)
+            ->post(route('projects.store'), [
+                'project_name'        => 'Invalid Skill Project',
+                'project_description' => 'Desc',
+                'project_deadline'    => '2025-12-01',
+                'client_id'           => $this->client->user_id,
+                'skill_ids'           => [9999],
+            ])
+            ->assertSessionHasErrors('skill_ids.0');
+    }
 }

@@ -5,9 +5,10 @@ namespace App\Models;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Skill extends Model {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $primaryKey = 'skill_id';
     protected $fillable = [
