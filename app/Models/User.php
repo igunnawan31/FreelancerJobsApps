@@ -78,6 +78,10 @@ class User extends Authenticatable
         return $this->projects()->count();
     }
 
+    public function totalProjectsClient() {
+        return $this->clients()->count();
+    }
+
     public function hasActiveProject(): bool
     {
         return $this->projects()
@@ -89,6 +93,31 @@ class User extends Authenticatable
                 ProjectStatus::STATUS_COMPLETED,
             ])
             ->count() >= 3;
+    }
+
+    public function countActiveProject() {
+        return $this->projects()
+            ->whereIn('project_status', [
+                ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
+                ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
+                ProjectStatus::STATUS_RUNNING,
+                ProjectStatus::STATUS_REVISION,
+                ProjectStatus::STATUS_COMPLETED,
+            ])
+            ->count();
+    }
+
+    public function countActiveClientProject() {
+        return $this->clients()
+            ->whereIn('project_status', [
+                ProjectStatus::STATUS_OPEN,
+                ProjectStatus::STATUS_REQUESTED_BY_FREELANCER,
+                ProjectStatus::STATUS_REQUESTED_BY_ADMIN,
+                ProjectStatus::STATUS_RUNNING,
+                ProjectStatus::STATUS_REVISION,
+                ProjectStatus::STATUS_COMPLETED,
+            ])
+            ->count();
     }
 
     public function ratings() {

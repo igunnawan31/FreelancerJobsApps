@@ -52,21 +52,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('skills', SkillController::class);
     Route::resource('projects', ProjectController::class);
 
-<<<<<<< HEAD
-    Route::post('/projects/{project}/request', [ProjectController::class, 'request'])->name('projects.request');
-    Route::post('/projects/{project}/assign', [ProjectController::class, 'assign'])->name('projects.assign');
-    Route::post('/projects/{project}/accept', [ProjectController::class, 'accept'])->name('projects.accept');
-    Route::post('/projects/{project}/reject', [ProjectController::class, 'reject'])->name('projects.reject');
-    Route::post('/projects/{project}/submit', [ProjectController::class, 'submit'])->name('projects.submit');
-    Route::post('/projects/{project}/revise', [ProjectController::class, 'revise'])->name('projects.revise');
-    Route::post('/projects/{project}/resubmit', [ProjectController::class, 'resubmit'])->name('projects.resubmit');
-    Route::post('/projects/{project}/approve', [ProjectController::class, 'approve'])->name('projects.approve');
-
-    Route::resource('users', UserController::class);
-=======
     Route::delete('/attachments/{attachment}', [ProjectAttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
->>>>>>> 552ac011def77996ccb09a662477397f4bcf62ff
     Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])
         ->name('users.password.update');
 

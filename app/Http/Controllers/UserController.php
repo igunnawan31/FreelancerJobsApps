@@ -90,11 +90,12 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $this->authorize('update', User::class);
+        $this->authorize('update', $user);
 
-        $skills = Skill::orderBy('skill_name')->get(['skill_id', 'skill_name']);
+        $skills = Skill::all();
+        $userSkillIds = $user->skills->pluck('skill_id')->toArray();
 
-        return view('users.update', compact('skills'));
+        return view('users.edit', compact('user', 'skills', 'userSkillIds'));
     }
 
     public function update(UpdateUserRequest $request, User $user)
@@ -127,7 +128,8 @@ class UserController extends Controller
             $user->update(['profile_picture' => $path]);
         }
 
-        return redirect()->route('users.show', $user->user_id);
+        return redirect()->route('users.index')
+            ->with('success', 'User updated successfully');
     }
 
     public function updatePassword(UpdatePasswordRequest $request, User $user)

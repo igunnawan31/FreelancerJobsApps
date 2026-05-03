@@ -30,7 +30,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->timestamps();
-            $table->unique(['project_id', 'user_id', 'rating_type', 'deleted_at']);
+            $table->softDeletes();
+            $table->unique(['project_id', 'user_id', 'rating_type', 'deleted_at'], 'ratings_unique_constraint');
         });
     }
 
