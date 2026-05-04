@@ -44,6 +44,61 @@ class UserController extends Controller
         return view('users.index', compact('users'));
     }
 
+    public function profile()
+    {
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = User::with(['projects', 'skills', 'ratings', 'clients']) 
+                    ->findOrFail(auth()->id());
+
+        return view('profiles.index', compact('user'));
+    }
+
+public function editProfile()
+{
+    /** @var \App\Models\User $user */
+    $user = auth()->user(); 
+    
+    $skills = Skill::orderBy('skill_name')->get();
+    $userSkillIds = $user->skills->pluck('skill_id')->toArray();
+
+    return view('profiles.edit', compact('user', 'skills', 'userSkillIds'));
+}
+
+    public function updateProfile(UpdateUserRequest $request)
+    {
+        $user = User::findOrFail(auth()->id());
+        
+        $validated = $request->validated();
+        $skillIds = $validated['skill_ids'] ?? [];
+        unset($validated['skill_ids']);
+
+        $oldPicture = $user->profile_picture;
+
+        if (!empty($validated['password'])) {
+            $validated['password'] = Hash::make($validated['password']);
+        } else {
+            unset($validated['password']);
+        }
+
+        unset($validated['profile_picture']);
+
+        $user->update($validated);
+        $user->skills()->sync($skillIds);
+
+        if ($request->hasFile('profile_picture')) {
+            if ($oldPicture) {
+                Storage::disk('public')->delete($oldPicture);
+            }
+            $path = $request->file('profile_picture')->store('profile_pictures', 'public');
+            $user->update(['profile_picture' => $path]);
+        }
+
+        return redirect()->route('profiles.index')->with('success', 'Profile updated!');
+    }
+
     public function show(User $user)
     {
         $this->authorize('view', $user);

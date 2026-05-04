@@ -56,7 +56,11 @@ Route::middleware('auth')->group(function () {
         ->name('attachments.destroy');
     Route::put('/users/{user}/password', [UserController::class, 'updatePassword'])
         ->name('users.password.update');
-
-
+    
+    Route::middleware(['auth'])->group(function () {
+        Route::get('/profiles', [UserController::class, 'profile'])->name('profiles.index');
+        Route::get('/profiles/edit', [UserController::class, 'editProfile'])->name('profiles.edit');
+        Route::put('/profiles/update', [UserController::class, 'updateProfile'])->name('profiles.update');
+    });
     Route::post('/logout', [AuthenticatedSessionController::class, 'logout'])->name('logout');
 });

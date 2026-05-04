@@ -23,12 +23,12 @@ class UpdateUserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('user')->user_id;
+        $userId = auth()->id(); 
 
         return [
             'name'            => 'required|string|max:30',
             'email'           => "required|email|unique:users,email,{$userId},user_id",
-            'role'            => ['required', new Enum(UserRole::class)],
+            'role'            => ['required', new \Illuminate\Validation\Rules\Enum(\App\Enums\UserEnums\UserRole::class)],
             'phone_number'    => "nullable|string|max:13|unique:users,phone_number,{$userId},user_id",
             'profile_picture' => 'nullable|image|max:2048',
             'portfolio'       => 'nullable|url',

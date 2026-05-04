@@ -6,9 +6,6 @@
                 <li><a href="/dashboard" class="hover:text-gray-300">Dashboard</a></li>
                 <li><a href="/projects" class="hover:text-gray-300">Projects</a></li>
 
-                <li><a href="/ratings" class="hover:text-gray-300">Rating Freelancers</a></li>
-                <li><a href="#" class="hover:text-gray-300">Payments</a></li>
-
                 <li><a href="/users" class="hover:text-gray-300">Management Users</a></li>
                 <li><a href="/skills" class="hover:text-gray-300">Management Skills</a></li>
                 <li><a href="/profiles" class="hover:text-gray-300">My Profile</a></li>
@@ -18,13 +15,12 @@
                 <li><a href="/dashboard" class="hover:text-gray-300">Dashboard</a></li>
                 <li><a href="/projects" class="hover:text-gray-300">Projects</a></li>
                 <li><a href="/profiles" class="hover:text-gray-300">My Profile</a></li>
-                <li><a href="#" class="hover:text-gray-300">Payments</a></li>
-                <li><a href="#" class="hover:text-gray-300">Profile</a></li>
             @endif
 
             @if(auth()->user()->role === \App\Enums\UserEnums\UserRole::CLIENT)
-                <li><a href="/dashboard" class="hover:text-gray-300">My Commission</a></li>
-                <li><a href="#" class="hover:text-gray-300">Profile</a></li>
+                <li><a href="/dashboard" class="hover:text-gray-300">Dashboard</a></li>
+                <li><a href="/projects" class="hover:text-gray-300">My Commission</a></li>
+                <li><a href="/profiles" class="hover:text-gray-300">My Profile</a></li>
             @endif
         </ul>
     </div>
