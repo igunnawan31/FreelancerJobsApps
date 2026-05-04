@@ -73,7 +73,7 @@ class SkillController extends Controller
     {
         $this->authorize('update', $skill);
 
-        return view('skills.update', compact('skill'));
+        return view('skills.edit', compact('skill'));
     }
 
     /**

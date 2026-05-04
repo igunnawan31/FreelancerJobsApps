@@ -10,23 +10,20 @@
         <div class="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-white/20">
             <div class="flex items-center gap-4">
                 <a href="{{ route('skills.index') }}" class="p-2 hover:bg-gray-100 rounded-full transition">
-                    <img 
-                        src="{{ asset('assets/back.svg') }}" 
-                        alt="Back" 
-                        class="w-6 h-6"
-                    >
+                    <img src="{{ asset('assets/back.svg') }}" alt="Back" class="w-6 h-6">
                 </a>
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Create New Skill</h1>
-                    <p class="text-sm text-gray-500">Add a new skill to the platform</p>
+                    <h1 class="text-2xl font-bold text-gray-800">Edit Skill</h1>
+                    <p class="text-sm text-gray-500">Updating profile for: {{ $skill->skill_name }}</p>
                 </div>
             </div>
         </div>
 
         {{-- Form --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <form id="skillForm" action="{{ route('skills.store') }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+            <form id="skillForm" action="{{ route('skills.update', $skill->skill_id) }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
                 @csrf
+                @method('PUT')
 
                 <div class="grid grid-cols-1 gap-6">
                     <div class="space-y-1">
@@ -34,7 +31,8 @@
                         <input 
                             type="text" 
                             name="skill_name" 
-                            required
+                            required 
+                            value="{{ old('skill_name', $skill->skill_name) }}"
                             class="w-full px-4 py-2 rounded-lg border 
                                 @error('skill_name') border-red-500 
                                 @else border-gray-200 
@@ -45,25 +43,25 @@
 
                     <div class="space-y-1">
                         <label class="text-sm font-semibold text-gray-700">Skill Description <span class="text-red-500">*</span></label>
-                        <textarea
+                        <textarea 
                             name="skill_description" 
-                            required
-                            class="w-full px-4 py-2 rounded-lg border h-32
+                            required 
+                            class="w-full px-4 py-2 rounded-lg border
                                 @error('skill_description') border-red-500 
                                 @else border-gray-200 
                                 @enderror focus:ring-2 focus:ring-blue-500 outline-none transition"
-                        >
-                        </textarea>
+                            rows="4"
+                        >{{ old('skill_description', $skill->skill_description) }}</textarea>
                         @error('skill_description') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="pt-6 border-t border-gray-50 flex gap-3">
-                        <button type="submit" class="px-8 py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-lg shadow-blue-900/20 cursor-pointer">
-                            Create Skill
+                        <button type="submit" class="px-8 py-3 bg-blue-900 text-white font-bold rounded-xl hover:bg-blue-800 transition shadow-lg cursor-pointer">
+                            Update Changes
                         </button>
-                        <button type="reset" class="px-8 py-3 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition">
-                            Reset Form
-                        </button>
+                        <a href="{{ route('skills.index') }}" class="px-8 py-3 bg-gray-100 text-gray-600 font-semibold rounded-xl hover:bg-gray-200 transition text-center">
+                            Cancel
+                        </a>
                     </div>
                 </div>
             </form>
@@ -79,27 +77,15 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            @if(session('success'))
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Done!',
-                    text: "{{ session('success') }}",
-                    showConfirmButton: false,
-                    timer: 3000,
-                    toast: true,
-                    position: 'top-end'
-                });
-            @endif
-
             @if($errors->any())
                 Swal.fire({
                     icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Please check your input fields.',
+                    title: 'Update Failed',
+                    text: 'Please correct the highlighted errors.',
                     confirmButtonColor: '#1e3a8a'
                 });
             @endif
-
+            
             const form = document.getElementById('skillForm');
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -110,13 +96,13 @@
                 }
 
                 Swal.fire({
-                    title: 'Confirm Creation',
-                    text: "Are you sure you want to register this skill?",
+                    title: 'Save Changes?',
+                    text: "Are you sure you want to update this skill's information?",
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#1e3a8a',
                     cancelButtonColor: '#9ca3af',
-                    confirmButtonText: 'Yes, Create it!'
+                    confirmButtonText: 'Yes, Update!'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
